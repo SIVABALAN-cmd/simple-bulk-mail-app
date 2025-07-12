@@ -1,80 +1,45 @@
-// const express = require("express")
-// const cors = require("cors")
-// const app = express()
-
-// app.use(cors())
-
-
-  
-
-
-// app.use(express.json())
-
-
-// const nodemailer = require("nodemailer");
-
-// const transporter = nodemailer.createTransport({
-//   service:"gmail",
-//   auth: {
-//     user: "smartsiva265@gmail.com",
-//     pass: "rhvq rffb gdfg ktpf ",
-//   },
-// });
-// var emailList = req.body.emailList;
-// var msg = req.body.msg  ;
-// app.post("/sendemail",function(req,res){
-//   for(var i=0;i<emailList.length;i++){
-//       transporter.sendMail ({
-//     from: "smartsiva265@gmail.com",
-//     to:emailList[i],
-//     subject: 'welcome to BulkMail',
-//     text:"jo"
-//   },
-// function(error,info){
-//     if(error){
-//         console.log("Error Occured",error)
-//         setstatus(false)
-//     }
-//     else{
-//         console.log("Email Sent Successfully",info.response)
-//         setstatus(true)
-//     }
-// });
-
-// }})
-
-
-// app.listen(5000,function(){
-//     console.log("Server Started.....")
-// })
-
+const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
-// mongosoe.connect("mongodb://127.0.0.1:27017/bulkmail")
-// .then(function(){
-//     console.log("Connected to MongoDB");
 
-// })
-// .catch(function(){
+// Connect to MongoDB
+mongoose.connect("mongodb+srv://siva:Sivabalankarthi%402003@cluster0.jv9pt0h.mongodb.net/passkey?retryWrites=true&w=majority&appName=Cluster0")
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(() => console.log("Error connecting to MongoDB"));
 
-//   console.log("Error connecting to MongoDB");
-// })
+ const credentialSchema = new mongoose.Schema({
+   user: String,
+   password: String,
+});
+
+// Create model
+const Credential = mongoose.model("bulkmail",credentialSchema, "bulkmail");
 
 
 
-// Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "smartsiva265@gmail.com", // Your Gmail ID
-    pass: "rhvqrffbgdfgktpf",       // App Password (not your Gmail login password)
-  },
+// Fetch credentials and set up transporter
+Credential.findOne().then(data => {
+  if (!data) {
+    console.error("No credentials found in DB.");
+    return;
+  }
+
+  transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: data.user,
+      pass: data.password,
+    },
+  });
+
+  console.log("Transporter initialized with:", data.user);
+}).catch(err => {
+  console.error("Error fetching data from MongoDB:", err);
 });
 
 // Email sending route
@@ -85,10 +50,14 @@ app.post("/sendemail", async (req, res) => {
     return res.status(400).json({ error: "emailList and msg are required." });
   }
 
+  if (!transporter) {
+    return res.status(500).json({ error: "Email transporter not ready." });
+  }
+
   try {
     const sendMailPromises = emailList.map(email => {
       return transporter.sendMail({
-        from: "smartsiva265@gmail.com",
+        from: transporter.options.auth.user,
         to: email,
         subject: "Welcome to BulkMail",
         text: msg,
