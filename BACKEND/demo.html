@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  <!-- XLSX library (Main file) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/shim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<input type="file" id="fileinput" />
+
+<script>
+    var fileinput=document.getElementById("fileinput");
+fileinput.addEventListener("change", function(event) {
+    const file=event.target.files[0]
+    const reader=new FileReader();
+    
+    reader.onload=function(event) {
+        const data=event.target.result;
+         reader.readAsBinaryString(file);
+       
+      
+        const workbook=XLSX.read(data,{type: 'binary'});
+        const sheetname=workbook.SheetNames;
+        const worksheet=workbook.Sheets[sheetname]
+        const emailList=XLSX.utils.sheet_to_json(worksheet, {header:'A'});
+        // reader.readAsBinaryString(file);
+       
+    
+       console.log(emailList)
+    }
+    reader.readAsBinaryString(file);
+})
+</script>
+    
+</body>
+</html>
+
+    
