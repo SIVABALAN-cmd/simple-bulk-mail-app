@@ -46,7 +46,7 @@ function App() {
     setstatus(true);
 
     axios
-      .post("https://simple-bulk-mail-app-backend.onrender.com", {
+      .post("https://simple-bulk-mail-app-backend.onrender.com/api/sendmail", {
         emailList: emailList,
         msg: msg,
       })
